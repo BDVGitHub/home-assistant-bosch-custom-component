@@ -69,6 +69,20 @@ class StatisticHelper(BoschBaseSensor):
         return False
 
     @property
+    def _statistic_unit_class(self) -> str | None:
+        """Get unit_class for statistics based on device class."""
+        from homeassistant.components.sensor import SensorDeviceClass
+
+        device_class = getattr(self, "_attr_device_class", None)
+        if device_class == SensorDeviceClass.ENERGY:
+            return "energy"
+        elif device_class == SensorDeviceClass.GAS:
+            return "volume"
+        elif device_class == SensorDeviceClass.TEMPERATURE:
+            return "temperature"
+        return None
+
+    @property
     def statistic_metadata(self) -> StatisticMetaData:
         """Statistic Metadata recorder model class."""
         return StatisticMetaData(
@@ -79,6 +93,7 @@ class StatisticHelper(BoschBaseSensor):
             source=self._domain_name.lower(),
             statistic_id=self.statistic_id,
             unit_of_measurement=self._unit_of_measurement,
+            unit_class=self._statistic_unit_class,
         )
 
     async def get_last_stat(self) -> dict[str, list[StatisticsRow]]:
