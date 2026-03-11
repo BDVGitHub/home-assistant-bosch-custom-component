@@ -146,14 +146,21 @@ class BoschWaterHeater(BoschClimateWaterEntity, WaterHeaterEntity):
         self._temperature_unit = UNITS_CONVERTER.get(
             self._bosch_object.temp_units if self._bosch_object.temp_units else "C"
         )
+        new_target_temp = self._bosch_object.target_temperature
+        new_current_temp = self._bosch_object.current_temp
+        # Only update temperatures if new values are not None (preserve last known value)
+        if new_target_temp is None:
+            new_target_temp = self._target_temperature
+        if new_current_temp is None:
+            new_current_temp = self._current_temperature
         if (
             self._state != self._bosch_object.state
             or self._operation_list == self._bosch_object.ha_modes
-            or self._current_temperature != self._bosch_object.current_temp
+            or self._current_temperature != new_current_temp
         ):
             self._state = self._bosch_object.state
-            self._target_temperature = self._bosch_object.target_temperature
-            self._current_temperature = self._bosch_object.current_temp
+            self._target_temperature = new_target_temp
+            self._current_temperature = new_current_temp
             self._operation_list = self._bosch_object.ha_modes
             self._mode = self._bosch_object.ha_mode
             self.async_schedule_update_ha_state()

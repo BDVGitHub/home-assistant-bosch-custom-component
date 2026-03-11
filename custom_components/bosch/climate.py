@@ -159,16 +159,23 @@ class BoschThermostat(BoschClimateWaterEntity, ClimateEntity):
         if not self._bosch_object or not self._bosch_object.update_initialized:
             return
         self._temperature_units = UNITS_CONVERTER.get(self._bosch_object.temp_units)
+        new_target_temp = self._bosch_object.target_temperature
+        new_current_temp = self._bosch_object.current_temp
+        # Only update temperatures if new values are not None (preserve last known value)
+        if new_target_temp is None:
+            new_target_temp = self._target_temperature
+        if new_current_temp is None:
+            new_current_temp = self._current_temperature
         if (
             self._state != self._bosch_object.state
-            or self._target_temperature != self._bosch_object.target_temperature
-            or self._current_temperature != self._bosch_object.current_temp
+            or self._target_temperature != new_target_temp
+            or self._current_temperature != new_current_temp
             or self._hvac_modes != self._bosch_object.ha_modes
             or self._hvac_mode != self._bosch_object.ha_mode
         ):
             self._state = self._bosch_object.state
-            self._target_temperature = self._bosch_object.target_temperature
-            self._current_temperature = self._bosch_object.current_temp
+            self._target_temperature = new_target_temp
+            self._current_temperature = new_current_temp
             self._hvac_modes = self._bosch_object.ha_modes
             self._hvac_mode = self._bosch_object.ha_mode
             self.async_schedule_update_ha_state()
